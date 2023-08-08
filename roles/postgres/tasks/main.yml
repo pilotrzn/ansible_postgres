@@ -1,0 +1,23 @@
+---
+
+- include_tasks: debian.yml
+  when: ansible_os_family == "Debian"
+
+# password
+- name: Set password for postgres OS user/ generate ssh-key
+  user:
+    name: postgres
+    password: "{{ postgres_os_password|password_hash('sha512') }}"
+    shell: "/bin/bash"
+    generate_ssh_key: yes
+    ssh_key_bits: 4096
+    ssh_key_file: "{{ postgresql_home_dir }}/.ssh/id_rsa"
+
+# pgpass
+- name: Configure a password file ({{ postgresql_home_dir }}/.pgpass)
+  template:
+    src: templates/pgpass.j2
+    dest: "{{ postgresql_home_dir }}/.pgpass"
+    owner: postgres
+    group: postgres
+    mode: 0600   

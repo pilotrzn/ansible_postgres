@@ -1,0 +1,51 @@
+---
+
+# установка
+- name: Install pgbouncer package
+  package:
+    name: pgbouncer
+  register: package_status
+  until: package_status is success
+  delay: 5
+  retries: 3
+
+# каталог
+- name: Ensure config directory "{{ pgbouncer_conf_dir }}" exist
+  file:
+    path: "{{ pgbouncer_conf_dir }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: 0750
+
+- name: Stop and disable standard init script
+  service:
+    name: pgbouncer
+    state: stopped
+    enabled: false
+  when: ansible_os_family == "Debian"
+
+- name: Copy systemd service file
+  template:
+    src: templates/pgbouncer.service.j2
+    dest: /etc/systemd/system/pgbouncer.service
+    owner: postgres
+    group: postgres
+    mode: 0644
+  notify: "restart pgbouncer"
+
+- block:  # workaround for pgbouncer from postgrespro repo
+    - name: Check that /usr/bin/pgbouncer is exists
+      stat:
+        path: /usr/bin/pgbouncer
+      register: pgbouncer_bin
+
+    - name: create a symlink to /usr/sbin/pgbouncer
+      file:
+        src: /usr/sbin/pgbouncer
+        dest: /usr/bin/pgbouncer
+        owner: root
+        group: root
+        state: link
+      when: not pgbouncer_bin.stat.exists
+  when: is_postgrespro == true

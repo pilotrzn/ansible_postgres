@@ -1,0 +1,7 @@
+---
+
+- include_tasks: install.yml
+
+- include_tasks: logrotate.yml
+
+- include_tasks: pool_config.yml

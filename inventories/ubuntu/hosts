@@ -1,0 +1,35 @@
+
+[PATRONICLUSTER:children]
+ETCD_SERVERS
+PGSQL_SERVERS
+
+[haproxy_cluster:children]
+PGSQL_SERVERS
+haproxy
+
+[ETCD_SERVERS]
+etcd01 ansible_host=192.168.122.55 hostname=etcd01
+#etcd02 ansible_host=192.168.122.43 hostname=etcd02
+#etcd03 ansible_host=192.168.122.44 hostname=etcd03
+
+[backups:children]
+PGSQL_SERVERS
+backup
+
+[PGSQL_SERVERS:children]
+pg_master
+pg_replica
+
+[pg_master]
+pgsql01 ansible_host=192.168.122.50 hostname=pgsql01
+
+[pg_replica]
+pgsql02 ansible_host=192.168.122.51 hostname=pgsql02
+pgsql03 ansible_host=192.168.122.52 hostname=pgsql03
+
+[haproxy]
+haproxy01 ansible_host=192.168.122.53 hostname=haproxy01
+
+[backup]
+; backup01 ansible_host=192.168.122.54 hostname=backup01
+

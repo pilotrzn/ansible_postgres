@@ -1,0 +1,26 @@
+---
+
+- name: Configure pgbouncer.ini
+  template:
+    src: templates/pgbouncer.ini.j2
+    dest: "{{ pgbouncer_conf_dir }}/pgbouncer.ini"
+    owner: postgres
+    group: postgres
+    mode: 0640
+
+
+- name: Create userlist.txt
+  template:
+    src: templates/userlist.txt.j2
+    dest: "{{ pgbouncer_conf_dir }}/userlist.txt"
+    owner: postgres
+    group: postgres
+    mode: 0640
+
+
+- name: Restart pgbouncer service
+  systemd:
+    daemon_reload: true
+    name: pgbouncer
+    enabled: true
+    state: restarted

@@ -1,0 +1,15 @@
+---
+
+- name: Deploy postgres
+  become: yes
+  gather_facts: yes
+  become_method: sudo
+  any_errors_fatal: true
+  hosts: pg_master
+  vars_files:
+    - vars/.secret.yml
+    - vars/postgres.yml
+    - vars/patroni.yml
+
+  roles:
+    - role: postgresql-users

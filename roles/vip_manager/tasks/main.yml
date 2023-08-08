@@ -1,0 +1,75 @@
+---
+  
+## Copy files
+- name: Copy file to server
+  copy:
+     src: "{{ vip_manager_package }}"
+     dest: "{{ dest_files_folder }}"
+
+## List of files
+- name: Making a list of files
+  shell: "ls {{ dest_files_folder }}"
+  register: command_result
+
+## Install package
+- name: Install package
+  become: true
+  shell: "dpkg -i {{ dest_files_folder }}/{{vip_manager_package}}"
+  ignore_errors: true
+  when: ansible_os_family == "Debian"
+
+## Config dir
+- name: Make sure the conf directory "{{ vip_manager_conf | dirname }}" exist
+  file:
+    dest: "{{ vip_manager_conf | dirname }}"
+    state: directory
+    owner: postgres
+    group: postgres
+
+
+## Edit config
+- name: Generate conf file "{{ vip_manager_conf }}"
+  template:
+    src: templates/vip-manager.yml.j2
+    dest: "{{ vip_manager_conf }}"
+    owner: postgres
+    group: postgres
+    mode: 0644
+
+## Edit service
+- name: Generate systemd service file
+  template:
+    src: templates/vip-manager.service.j2
+    dest: /etc/systemd/system/vip-manager.service
+    owner: postgres
+    group: postgres
+    mode: 0644
+
+- name: Restart vip-manager service
+  systemd:
+    daemon_reload: true
+    name: vip-manager
+    state: restarted
+    enabled: true
+
+- name: Wait for the cluster ip address (VIP) "{{ cluster_vip }}" is running
+  wait_for:
+    host: "{{ cluster_vip }}"
+    port: "{{ ansible_ssh_port | default(22) }}"
+    state: started
+    timeout: 60
+    delay: 2
+  when: is_master == "true"
+  ignore_errors: true
+  
+## clear tmp folder
+- name: Remove file (delete file)
+  file:
+    path: "{{ dest_files_folder }}"
+    state: absent
+    owner: root
+    group: root
+    mode: '0755'
+  with_items:
+    - absent
+    - directory

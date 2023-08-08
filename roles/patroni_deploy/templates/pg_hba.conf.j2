@@ -1,0 +1,23 @@
+# TYPE      DATABASE                 USER                     ADDRESS                  METHOD
+
+{% for client in postgresql_pg_hba %}
+{{ client.type.ljust(10) |default('host') }}{{ client.database.ljust(25) |default('all') }}{{ client.user.ljust(25) |default('all') }}{{ client.address.ljust(25) |default('') }}{{ client.method |default('md5') }} {{ client.options |default(None) }}
+{% endfor %}
+
+local replication all              {{ postgresql_password_encryption_algorithm }}
+host  replication all 127.0.0.1/32 {{ postgresql_password_encryption_algorithm }}
+host  replication all ::1/128      {{ postgresql_password_encryption_algorithm }}
+
+# Allow replication connections from localhost, by a user with the
+# replication privilege.
+{% for host in groups['PGSQL_SERVERS'] %}
+host replication {{ patroni_replication_username }} {{ hostvars[host].ansible_facts.default_ipv4.address }}/32 {{ postgresql_password_encryption_algorithm }}
+{% endfor %}
+
+# all
+{% for host in groups['PGSQL_SERVERS'] %}
+host all  all {{ hostvars[host].ansible_facts.default_ipv4.address }}/32 {{ postgresql_password_encryption_algorithm }}
+{% endfor %}
+
+#home access
+host all all 192.168.122.0/24 md5

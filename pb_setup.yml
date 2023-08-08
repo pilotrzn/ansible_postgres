@@ -1,0 +1,25 @@
+---
+
+- name: Setup servers prod
+  become: yes
+  #gather_facts: yes
+  become_method: sudo
+  any_errors_fatal: true
+  hosts: all
+  vars_files:
+    - vars/.secret.yml
+    - vars/setup.yml
+    
+  pre_tasks:
+    - name: Include OS-specific variables
+      include_vars: "vars/{{ ansible_os_family }}.yml"
+
+    - name: Include repo prod
+      include_vars: vars/repo.yml
+      # when: not is_home_tests|bool
+
+  roles:
+    - role: add_repo
+    - role: packages
+    - role: users
+    - role: sudo

@@ -1,0 +1,19 @@
+---
+
+- name: Deploy etcd
+  become: yes
+  gather_facts: yes
+  become_method: sudo
+  any_errors_fatal: true
+  hosts: ETCD_SERVERS
+  vars_files:
+    - vars/.secret.yml
+    - vars/etcd.yml
+
+    
+  pre_tasks:
+    - name: Include OS-specific variables
+      include_vars: "vars/{{ ansible_os_family }}.yml"
+
+  roles:
+    - role: etcd_cluster

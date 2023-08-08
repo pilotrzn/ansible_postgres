@@ -1,0 +1,25 @@
+---
+- name: Make sure that directory "{{ postgresql_dir }}" exists
+  file:
+    path: "{{ postgresql_dir }}"
+    owner: postgres
+    group: postgres
+    state: directory
+    mode: 0750
+
+- name: Make sure that data directory exists
+  file:
+    path: "{{ postgresql_data_dir }}"
+    owner: postgres
+    group: postgres
+    state: directory
+    mode: 0750
+
+# каталог логов postgres
+- name: Make sure the postgresql log directory "{{ postgresql_log_dir }}" exists
+  file:
+    path: "{{ postgresql_log_dir }}"
+    owner: postgres
+    group: postgres
+    state: directory
+    mode: 0700

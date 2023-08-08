@@ -1,0 +1,9 @@
+---
+- include_tasks: debian.yml
+  when: ansible_os_family == "Debian"
+
+# каталоги для бд
+- include_tasks: postgresql_dir.yml
+  when: not is_postgrespro|bool
+
+- include_tasks: patroni_dir.yml

@@ -1,0 +1,16 @@
+---
+
+- name: Enable log rotation with logrotate
+  copy:
+    content: |
+      /var/log/pgbouncer/pgbouncer.log {
+             daily
+             rotate 7
+             copytruncate
+             delaycompress
+             compress
+             notifempty
+             missingok
+             su root root
+      }
+    dest: /etc/logrotate.d/pgbouncer

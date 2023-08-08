@@ -1,0 +1,21 @@
+---
+
+- name: Deploy patroni
+  become: yes
+  gather_facts: yes
+  become_method: sudo
+  any_errors_fatal: true
+  hosts: PGSQL_SERVERS
+  vars_files:
+    - vars/.secret.yml
+    - vars/setup.yml
+    - vars/patroni.yml
+    - vars/postgres.yml
+
+  pre_tasks:
+    - name: Include OS-specific variables
+      include_vars: "vars/{{ ansible_os_family }}.yml"
+
+  roles:
+    - role: patroni_install
+    - role: patroni_deploy

@@ -1,0 +1,6 @@
+---
+
+vip_interface: "{{ ansible_default_ipv4.interface }}"  # interface name (ex. "ens32")
+vip_manager_version: "1.0.1"  # version to install
+vip_manager_conf: "/etc/default/vip-manager.yml"
+vip_manager_interval: "1000"  # time (in milliseconds) after which vip-manager wakes up and checks if it needs to register or release ip addresses.

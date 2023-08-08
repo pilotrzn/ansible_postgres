@@ -1,0 +1,117 @@
+---
+
+data_disk_fstype: "xfs"
+data_disk_mount_opts: "noatime,nodiratime,noexec"
+
+postgresql_stats_temp_directory_size: "1024m"
+
+postgresql_port: "5432"
+postgresql_encoding: "UTF8"  # for bootstrap only (initdb)
+postgresql_locale: "en_US.UTF-8"  # for bootstrap only (initdb)
+postgresql_data_checksums: true  # for bootstrap only (initdb)
+postgresql_password_encryption_algorithm: "md5"
+postgresql_restore_command: ""
+
+
+postgresql_pg_hba:
+  - { type: "local", database: "all", user: postgres, address: "", method: "trust" }
+  - { type: "local", database: "all", user: "all", address: "", method: "{{ postgresql_password_encryption_algorithm }}" }
+  - { type: "host", database: "all", user: "all", address: "127.0.0.1/32", method: "{{ postgresql_password_encryption_algorithm }}" }
+  - { type: "host", database: "all", user: "all", address: "::1/128", method: "{{ postgresql_password_encryption_algorithm }}" }
+
+# shared parameters
+postgresql_parameters:
+  - { option: "superuser_reserved_connections", value: "4" }
+  - { option: "password_encryption", value: "{{ postgresql_password_encryption_algorithm }}" }
+  - { option: "max_locks_per_transaction", value: "64" }  
+  - { option: "max_prepared_transactions", value: "0" }
+  - { option: "checkpoint_timeout", value: "15min" }
+  - { option: "checkpoint_completion_target", value: "0.9" }
+  - { option: "default_statistics_target", value: "1000" }
+  - { option: "seq_page_cost", value: "1" }
+  - { option: "synchronous_commit", value: "on" }  
+  - { option: "max_files_per_process", value: "1024" }
+  - { option: "archive_mode", value: "on" }
+  - { option: "archive_timeout", value: "1800s" }
+  - { option: "archive_command", value: "/bin/true" }  
+  - { option: "wal_level", value: "replica" }
+  - { option: "max_wal_senders", value: "10" }
+  - { option: "max_replication_slots", value: "10" }
+  - { option: "hot_standby", value: "on" }
+  - { option: "wal_log_hints", value: "on" }
+  - { option: "wal_compression", value: "on" }
+  - { option: "shared_preload_libraries", value: "pg_stat_statements,auto_explain" }
+  - { option: "pg_stat_statements.max", value: "10000" }
+  - { option: "pg_stat_statements.track", value: "all" }
+  - { option: "pg_stat_statements.track_utility", value: "false" }
+  - { option: "pg_stat_statements.save", value: "true" }
+  - { option: "auto_explain.log_min_duration", value: "10s" }  
+  - { option: "auto_explain.log_analyze", value: "true" }
+  - { option: "auto_explain.log_buffers", value: "true" }
+  - { option: "auto_explain.log_timing", value: "false" }
+  - { option: "auto_explain.log_triggers", value: "true" }
+  - { option: "auto_explain.log_verbose", value: "true" }
+  - { option: "auto_explain.log_nested_statements", value: "true" }
+  - { option: "auto_explain.sample_rate", value: "0.01" }  
+  - { option: "track_io_timing", value: "on" }
+  - { option: "log_lock_waits", value: "on" }
+  - { option: "log_temp_files", value: "0" }
+  - { option: "track_activities", value: "on" }
+  - { option: "track_counts", value: "on" }
+  - { option: "track_functions", value: "all" }
+  - { option: "log_checkpoints", value: "on" }
+  - { option: "log_connections", value: "off" }
+  - { option: "log_disconnections", value: "off" }
+  - { option: "log_statement", value: "none" }
+  - { option: "logging_collector", value: "on" }
+  - { option: "log_min_duration_statement", value: "5s" }
+  - { option: "log_truncate_on_rotation", value: "on" }
+  - { option: "log_rotation_age", value: "1d" }
+  - { option: "log_rotation_size", value: "0" }
+  - { option: "log_line_prefix", value: "'%t [%p]: [%l-1] '" }
+  - { option: "log_filename", value: "postgresql-%Y-%m-%d.log" }
+  - { option: "hot_standby_feedback", value: "on" }  # allows feedback from a hot standby to the primary that will avoid query conflicts
+  - { option: "max_standby_streaming_delay", value: "30s" }
+  - { option: "wal_receiver_status_interval", value: "10s" }
+  - { option: "jit", value: "off" }
+  - { option: "lc_messages", value: "en_US.UTF-8" } 
+  - { option: "lc_monetary", value: "ru_RU.UTF-8" }
+  - { option: "lc_numeric", value: "ru_RU.UTF-8" }
+  - { option: "lc_time", value: "ru_RU.UTF-8" }
+  - { option: "effective_io_concurrency", value: "200" }
+
+
+
+#  в разработке
+postgresql_users: 
+  - { name: "zabbix", password: "{{ monitoring_pass }}", flags: "NOSUPERUSER,LOGIN,INHERIT" }
+  - { name: "barman", password: "{{ barman_pass }}", flags: "CREATEDB,CREATEROLE,INHERIT,LOGIN" }
+  - { name: "streaming_barman", password: "{{ streaming_barman_pass }}", flags: "INHERIT,LOGIN,REPLICATION" }
+  # - { name: "", password: "", flags: "NOSUPERUSER" }
+  # - { name: "", password: "", flags: "NOSUPERUSER" }
+  # - { name: "", password: "", flags: "NOLOGIN" }
+
+postgres_users_grants0:  
+  zabbix: 
+    - { db: "", privs: "", type: "", schema: "", obj: "" }
+  barman: 
+    - { db: "postgres", privs: "EXECUTE", type: "function", schema: "pg_catalog", obj: "pg_start_backup(text, boolean, boolean)" }
+    - { db: "postgres", privs: "EXECUTE", type: "function", schema: "pg_catalog", obj: "pg_stop_backup()" }
+    - { db: "postgres", privs: "EXECUTE", type: "function", schema: "pg_catalog", obj: "pg_stop_backup(boolean, boolean)" }
+    - { db: "postgres", privs: "EXECUTE", type: "function", schema: "pg_catalog", obj: "pg_switch_wal()" }
+    - { db: "postgres", privs: "EXECUTE", type: "function", schema: "pg_catalog", obj: "pg_create_restore_point(text)" }
+    - { db: "postgres", privs: "", type: "group", schema: "pg_catalog", obj: "pg_read_all_settings" }
+  streaming_barman: 
+    - { db: "", privs: "", type: "",obj: "",schema: "",roles: "" }
+    - { db: "", privs: "", type: "",obj: "",schema: "",roles: "" }
+
+postgres_users_grants: 
+    - {username: zabbix, db: "postgres", privs: "", type: "group", schema: "pg_catalog", obj: "pg_monitor" }
+    - {username: barman, db: "postgres", privs: "EXECUTE", type: "function", schema: "pg_catalog", obj: "pg_start_backup(text, boolean, boolean)" }
+    - {username: barman, db: "postgres", privs: "EXECUTE", type: "function", schema: "pg_catalog", obj: "pg_stop_backup()" }
+    - {username: barman, db: "postgres", privs: "EXECUTE", type: "function", schema: "pg_catalog", obj: "pg_stop_backup(boolean, boolean)" }
+    - {username: barman, db: "postgres", privs: "EXECUTE", type: "function", schema: "pg_catalog", obj: "pg_switch_wal()" }
+    - {username: barman, db: "postgres", privs: "EXECUTE", type: "function", schema: "pg_catalog", obj: "pg_create_restore_point(text)" }
+    - {username: barman, db: "postgres", privs: "", type: "group", schema: "pg_catalog", obj: "pg_read_all_settings" }
+    - {username: streaming_barman, db: "", privs: "", type: "",obj: "",schema: "",roles: "" }
+    - {username: streaming_barman, db: "", privs: "", type: "",obj: "",schema: "",roles: "" }

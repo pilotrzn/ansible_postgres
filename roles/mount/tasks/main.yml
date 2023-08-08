@@ -1,0 +1,19 @@
+---
+
+
+- name: Check mountpoint exist
+  file:
+    path: "{{ postgresql_dir }}"
+    state: directory
+    mode: 0777
+    owner: postgres
+    group: postgres
+
+- name: Mount "{{ data_part_disk }}" for Postgres data
+  mount:
+    src: "{{ data_part_disk }}"
+    path: "{{ postgresql_dir }}"
+    fstype: "{{ data_disk_fstype }}"
+    opts: "{{ data_disk_mount_opts }}"
+    state: mounted
+

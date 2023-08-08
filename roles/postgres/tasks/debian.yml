@@ -1,0 +1,51 @@
+---
+- name: Add repository apt-key
+  apt_key:
+    url: "{{ item.key }}"
+    state: present
+  loop: "{{ apt_repository_keys }}"
+  when: apt_repository_keys | length > 0
+
+- name: Add repository
+  apt_repository:
+    repo: "{{ item.repo }}"
+    state: present
+    update_cache: true
+  loop: "{{ apt_repository }}"
+  when: apt_repository | length > 0
+
+## хитрая установка
+- block: 
+  - name: PostgreSQL common for disable auto init
+    package:
+      name: postgresql-common
+      state: present
+    register: package_status
+    until: package_status is success
+    delay: 5
+    retries: 3
+  
+  - name: PostgreSQL disable initializing of a default postgresql cluster
+    replace:
+      path: /etc/postgresql-common/createcluster.conf
+      replace: create_main_cluster = false
+      regexp: ^#?create_main_cluster.*$
+
+  when: not is_standalone_cluster|bool
+
+- name: Install PostgreSQL packages on Debian
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ postgresql_packages }}"
+  register: apt_status
+  until: apt_status is success
+  delay: 5
+  retries: 3
+
+- name: Disable service postgres
+  systemd:
+    daemon_reload: true
+    name: postgresql
+    enabled: false
+    state: stopped

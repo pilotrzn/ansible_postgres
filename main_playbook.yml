@@ -1,0 +1,46 @@
+---
+- name: Main Playbook
+  become: yes
+  gather_facts: yes
+  hosts: all
+  vars_files:
+    - vars/.secret.yml
+    - vars/setup.yml
+
+  roles:
+  - role: ping
+  
+- import_playbook: pb_setup.yml
+  when: is_home_tests == false
+
+# - import_playbook: pb_setup_home.yml
+#   when: is_home_tests == true
+
+- import_playbook: pb_etcd.yml
+  when: is_install_etcd|bool
+
+- import_playbook: pb_postgres.yml
+  when: is_install_postgres|bool
+
+- import_playbook: pb_patroni.yml
+  when: is_install_patroni|bool
+
+- import_playbook: pb_vip.yml
+  when: is_install_vip|bool
+
+# - import_playbook: pb_pgbouncer.yml
+#   when: is_pgbouncer_install|bool
+
+# - import_playbook: pb_probackup.yml
+#   when: is_probackup_install|bool
+
+# - import_playbook: pb_haproxy.yml
+#   when: is_install_haproxy|bool
+
+# - import_playbook: pb_keepalived.yml
+#   when: is_keepalived_install|bool
+
+- import_playbook: pb_zabbix.yml
+
+- import_playbook: pb_def_pass.yml
+  when: is_passwd_change|bool

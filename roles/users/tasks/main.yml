@@ -1,0 +1,22 @@
+---
+- name: Create OS users 
+  user:
+    name: "{{ item.username }}"
+    password: "{{ item.user_password|password_hash('sha512') }}"
+    groups: "{{ item.groups }}"
+    shell: "/bin/bash"
+    create_home: "{{ item.create_home }}"
+    state: present
+  loop: "{{ create_users }}"
+
+- name: ssh-key add to users
+  authorized_key:
+    user: "{{ item.username }}"
+    state: present
+    key: "{{ item.key }}"
+  loop: "{{ ssh_keys_users }}"
+  when:
+     -  is_sshkey_add|bool  
+
+
+...

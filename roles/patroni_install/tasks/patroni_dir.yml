@@ -1,0 +1,38 @@
+---
+
+# Создание каталога для patroni конфига
+- name: Make sure that conf directory exists
+  file:
+    path: "{{ patroni_config_dir }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: 0750
+
+# Создание каталога для логов patroni
+- name: Make sure that patroni log directory exists
+  file:
+    path: "{{ patroni_log_dir }}"
+    owner: postgres
+    group: postgres
+    state: directory
+    mode: 0750
+  when: patroni_log_destination == 'logfile'
+  
+# Заполнение конфига патрони
+- name: Update conf file "{{ patroni_config_file }}"
+  template:
+    src: templates/patroni.j2
+    dest: "{{ patroni_config_file }}"
+    owner: postgres
+    group: postgres
+    mode: 0640
+
+# Создание сервиса patroni
+- name: Copy systemd service file "/etc/systemd/system/patroni.service"
+  template:
+    src: templates/patroni.service.j2
+    dest: /etc/systemd/system/patroni.service
+    owner: postgres
+    group: postgres
+    mode: 0644

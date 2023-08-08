@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+PGHOME=/usr/bin
+PGPORT=5432
+
+LOGFILE=/var/log/keepalived/keepalived_pg.log
+LOGFILE=/tmp/keepalived_pg.log
+
+SQL1='SELECT pg_is_in_recovery();'
+
+DB_ROLE=`echo $SQL1  |$PGHOME/psql -d postgres -U postgres -At -w`
+
+if [ $DB_ROLE == 't' ] ; then
+    echo -e `date +"%F %T"` "`basename $0`: [INFO] PostgreSQL is running in STANDBY mode." >> $LOGFILE
+	exit 1
+elif [ $DB_ROLE == 'f' ]; then
+    echo -e `date +"%F %T"` "`basename $0`: [INFO] PostgreSQL is running in PRIMARY mode." >> $LOGFILE
+	exit 0
+fi

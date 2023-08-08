@@ -1,0 +1,13 @@
+---
+- name: change {{ ansible_user }} password
+  user:
+    name: "{{ ansible_user }}"
+    state: present
+    password: "{{ new_ansible_password|password_hash('sha512') }}"
+
+
+- name: change root password
+  user:
+    name: root
+    state: present
+    password: "{{ new_root_password|password_hash('sha512') }}"

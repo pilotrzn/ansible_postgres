@@ -1,0 +1,15 @@
+---
+- name: Change password
+  become: true
+  gather_facts: true
+  become_method: sudo
+  any_errors_fatal: true
+  hosts: all
+  vars_files:
+    - vars/.secret.yml
+    - vars/postgres.yml
+    - vars/patroni.yml
+    - vars/setup.yml
+    
+  roles:
+    - def_pass

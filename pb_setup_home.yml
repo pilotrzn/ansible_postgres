@@ -1,0 +1,29 @@
+---
+
+- name: Setup servers home
+  become: yes
+  gather_facts: yes
+  become_method: sudo
+  any_errors_fatal: true
+  hosts: all
+  vars_files:
+    - vars/.secret.yml
+    - vars/setup.yml
+    
+  pre_tasks:
+    - name: Include OS-specific variables
+      include_vars: "vars/{{ ansible_os_family }}.yml"
+       
+    - name: Include repo home
+      include_vars: vars/repo_learn.yml
+      when: is_home_tests|bool
+
+  roles:
+    - role: apt_repo
+    - role: add_repo
+    - role: packages
+    - role: users
+    - role: sudo
+    - role: hostname   
+    - role: reboot_hosts 
+    - role: hosts 

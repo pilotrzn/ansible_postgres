@@ -1,0 +1,9 @@
+---
+
+- name: Install packages to Debian/Ubuntu
+  apt:
+     name: "{{ item }}"
+  loop: "{{ shared_package }}"
+  when:  
+    - item | length > 0
+    - ansible_os_family == "Debian"

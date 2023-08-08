@@ -1,0 +1,65 @@
+---
+- name: Start patroni service on the Master server
+  systemd:
+    daemon_reload: true
+    name: patroni
+    state: started
+    enabled: true
+
+- name: "Wait for port {{ patroni_restapi_port }} to become open on the host"
+  wait_for:
+    port: "{{ patroni_restapi_port }}"
+    host: "{{ hostvars[inventory_hostname].ansible_facts.default_ipv4.address }}"
+    state: started
+    timeout: 120
+    delay: 20
+  ignore_errors: false
+
+# Ожидание инициализации кластера
+- name: Wait for the cluster to initialize (master is the leader with the lock)
+  uri:
+    url: "http://{{ hostvars[inventory_hostname].ansible_facts.default_ipv4.address }}:{{ patroni_restapi_port }}/leader"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 10
+  delay: 5
+
+# hba
+# - name: Update pg_hba.conf
+#   template:
+#     src: templates/pg_hba.conf.j2
+#     dest: "{{ postgrespro_data_dir }}/pg_hba.conf"
+#     owner: postgres
+#     group: postgres
+#     mode: 0640
+#   register: generate_pg_hba
+#   when: is_postgrespro|bool
+
+# - name: Update pg_hba.conf
+#   template:
+#     src: templates/pg_hba.conf.j2
+#     dest: "{{ postgresql_data_dir }}/pg_hba.conf"
+#     owner: postgres
+#     group: postgres
+#     mode: 0640
+#   register: generate_pg_hba
+#   when: not is_postgrespro|bool
+
+# - name: Reload postgres
+#   become: true
+#   become_user: postgres
+#   command: "{{ postgresql_bin_dir }}/psql -p {{ postgresql_port }} -c 'SELECT pg_reload_conf()'"
+#   register: psql_reload_result
+#   changed_when: psql_reload_result.rc == 0
+#   failed_when: false 
+   # exec pg_reload_conf on all running postgres (to re-run with --tag pg_hba).
+
+# - name: Delete postgresql parameters from "/etc/patroni/patroni.yml"
+#   lineinfile:
+#     path: "{{ patroni_config_file }}"
+#     regexp: '^.*{{ item.option }}: {{ item.value }}$'
+#     state: absent
+#   loop: "{{ postgresql_parameters }}"
+#   when: item.value == "null"
+#   tags: patroni, patroni_conf

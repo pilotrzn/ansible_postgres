@@ -1,0 +1,14 @@
+---
+- name: Zabbix settings
+  become: true
+  gather_facts: true
+  become_method: sudo
+  any_errors_fatal: true
+  hosts: all
+  vars_files:
+    - vars/.secret.yml
+    - vars/setup.yml
+    - vars/zabbix.yml
+    
+  roles:
+    - zabbix

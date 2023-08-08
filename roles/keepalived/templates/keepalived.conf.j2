@@ -1,0 +1,30 @@
+global_defs {
+   router_id ocp_vrrp
+   enable_script_security
+   script_user root
+}
+ 
+vrrp_script check_pg_status {
+   script "/usr/libexec/keepalived/pg_checkstatus.sh"
+    interval 6
+    fall 3                  # require 3 failures for KO
+    init_fail
+}
+ 
+vrrp_instance VI_1 {
+   interface {{ ansible_default_ipv4.interface }}
+   virtual_router_id {{ cluster_vip.split('.')[3] | int }}
+   priority  100
+   advert_int 1
+   state  BACKUP
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    track_script {
+        check_pg_status
+    }
+   virtual_ipaddress {
+       {{ cluster_vip  }}/{{ vip_manager_mask }}
+   }
+}

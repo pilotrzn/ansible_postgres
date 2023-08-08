@@ -1,0 +1,11 @@
+---
+
+- include_tasks: master_start.yml
+  when: is_master|bool
+
+
+- include_tasks: replica_start.yml
+  when: is_deploy_replica|bool and not is_master|bool
+
+
+

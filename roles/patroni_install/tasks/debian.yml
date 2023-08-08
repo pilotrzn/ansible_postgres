@@ -1,0 +1,9 @@
+---
+
+- name: Install pip packages patroni on Debian
+  ansible.builtin.pip:
+    name: "{{ item }}"
+    executable: pip3
+  with_items:
+      "{{ patroni_package }}"
+  when: is_install_postgres|bool

@@ -1,0 +1,39 @@
+---
+# tasks file for deploy_etcd_cluster
+- name: Install etcd
+  apt:
+    name: etcd
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+ 
+- name: stop etcd service
+  systemd:
+    name: etcd
+    state: stopped
+
+- name: Generate conf file "{{ etcd_conf_file }}"
+  template:
+    src: templates/etcd.conf.j2
+    dest: "{{ etcd_conf_file }}"
+
+- name: Enable and start etcd service
+  systemd:
+    daemon_reload: true
+    name: etcd
+    enabled: true
+    state: started
+
+- name: Wait for port 2379 to become open on the host
+  wait_for:
+    port: 2379
+    host: 127.0.0.1
+    state: started
+    timeout: 120
+    delay: 10
+  ignore_errors: false
+
+- name: Change conf file "{{ etcd_conf_file }}"
+  template:
+    src: templates/etcd.conf.exist.j2
+    dest: "{{ etcd_conf_file }}"

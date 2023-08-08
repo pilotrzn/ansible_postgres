@@ -1,0 +1,42 @@
+---
+
+- name: Make sure the gnupg and apt-transport-https packages are present
+  apt:
+    pkg:
+      - gnupg
+      - apt-transport-https
+    state: present
+  register: apt_status
+  until: apt_status is success
+  delay: 5
+  retries: 3
+
+- name: Make sure pgdg apt key is installed
+  apt_key:
+    id: "{{ item.id }}"
+    url: "{{ item.url }}"
+  loop: "{{ apt_repository_pro_key }}" 
+
+- name: Make sure pgdg repository is installed
+  apt_repository:
+    repo: "{{ item.repo }}"
+  loop: "{{ apt_repository_pro }}" 
+
+- name: Update apt cache
+  apt:
+    update_cache: true
+  register: apt_status
+  until: apt_status is success
+  delay: 5
+  retries: 3
+
+- name: Install pg_probackup
+  package:
+    name:
+      - "{{ item }}"
+    state: present
+  loop: "{{ pg_probackup_package }}" 
+  register: package_status
+  until: package_status is success
+  delay: 5
+  retries: 3

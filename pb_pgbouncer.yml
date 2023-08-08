@@ -1,0 +1,17 @@
+---
+
+- name: Deploy pgbouncer
+  become: yes
+  gather_facts: yes
+  become_method: sudo
+  any_errors_fatal: true
+  hosts: PGSQL_SERVERS
+  vars_files:
+    - vars/.secret.yml
+    - vars/pgbouncer.yml
+    - vars/postgres.yml
+    - vars/patroni.yml
+
+  roles: 
+    - role: pgbouncer
+

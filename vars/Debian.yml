@@ -1,0 +1,53 @@
+--- 
+postgresql_bin_dir: "/usr/lib/postgresql/{{ postgresql_version }}/bin"
+postgresql_home_dir: "/var/lib/postgresql"
+etcd_conf_file: "/etc/default/etcd"
+
+shared_package:
+  - atop
+  - sysstat
+  - iftop
+  - iotop
+  - xfsprogs
+  - mc
+  - net-tools
+
+# vanilla
+apt_repository_keys:
+  - key: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"  # postgresql repository apt key
+apt_repository:
+  - repo: "deb https://apt.postgresql.org/pub/repos/apt/ {{ ansible_distribution_release }}-pgdg main" 
+
+
+postgresql_packages:
+  - "pgtop"
+  - "python3"
+  - "python3-apt"
+  - "python3-psycopg2"
+  - "python3-pip"
+  - "postgresql-{{ postgresql_version }}"
+
+postgresql_dir: "{{ postgresql_home_dir }}/{{ postgresql_version }}"
+postgresql_data_dir: "{{ postgresql_dir }}/data"
+postgresql_log_dir: "{{ postgresql_dir }}/log"
+postgresql_unix_socket_dir: "/var/run/postgresql"
+
+# pro_backup
+
+apt_repository_pro_key:
+  - {id: "636D717E", url: "https://repo.postgrespro.ru/pg_probackup/keys/GPG-KEY-PG_PROBACKUP"}
+
+apt_repository_pro:
+  - repo: "deb [arch=amd64] https://repo.postgrespro.ru/pg_probackup/deb/ {{ ansible_distribution_release }} main-{{ ansible_distribution_release }}"
+
+patroni_package:
+  - "psycopg2-binary"
+  - "patroni"
+  - "patroni[etcd]"
+
+pg_probackup_package:
+  - "pg-probackup-{{ postgresql_version }}"
+  - "pg-probackup-{{ postgresql_version }}-dbg"
+
+
+vip_manager_package: "vip-manager_2.1.0_Linux_x86_64.deb"

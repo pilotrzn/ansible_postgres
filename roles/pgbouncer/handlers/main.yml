@@ -1,0 +1,9 @@
+---
+
+- name: Restart pgbouncer service
+  systemd:
+    daemon_reload: true
+    name: pgbouncer
+    enabled: true
+    state: restarted
+  listen: "restart pgbouncer"

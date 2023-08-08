@@ -1,0 +1,16 @@
+- name: Copy  "{{ ntpd_config_path }}"
+  template:
+    src: ntpd.conf.j2
+    dest: "{{ ntpd_config_path  }}"
+    owner: root
+    group: wheel
+    mode: 0644
+    backup: yes
+  notify: "restart ntpd"
+
+
+- name: Start a service with systemd
+  systemd:
+    name: "{{ ntpd_service_name  }}"
+    state: started
+    enabled: yes

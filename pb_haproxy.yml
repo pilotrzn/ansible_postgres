@@ -1,0 +1,21 @@
+---
+
+- name: Deploy haproxy
+  become: yes
+  gather_facts: yes
+  become_method: sudo
+  any_errors_fatal: true
+  hosts: haproxy
+  vars_files:
+    - vars/.secret.yml
+    - vars/haproxy.yml
+    - vars/pgbouncer.yml
+    - vars/patroni.yml
+    - vars/postgres.yml
+
+  # pre_tasks:
+  #   - name: Include OS-specific variables
+  #     include_vars: "vars/{{ ansible_os_family }}.yml"
+
+  roles:
+    - role: haproxy_install

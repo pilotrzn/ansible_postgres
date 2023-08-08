@@ -1,0 +1,44 @@
+- name: install Zabbix agent
+  apt_rpm:
+    name: zabbix-agent2
+    state: present
+    update_cache: yes
+
+- name: clear config
+  ini_file:
+    path: /etc/zabbix/zabbix_agent2.conf
+    section:
+    state: absent
+
+- name: change permission conf
+  file:
+    path: /etc/zabbix
+    state: directory
+    owner: zabbix
+    group: zabbix
+    mode: '755'
+    recurse: yes
+
+- name: change permission log
+  file:
+    path: /var/log/zabbix
+    state: directory
+    owner: zabbix
+    group: zabbix
+    mode: '755'
+    recurse: yes
+
+- name: add config
+  lineinfile:
+   dest: /etc/zabbix/zabbix_agent2.conf
+   line: "{{ item.line }}"
+  loop:
+    - { line: 'LogFile=/var/log/zabbix/zabbix_agent2.log'} 
+    - { line: "{{ZBX_PROXY_HOST}}"}
+    - { line: 'Include=/etc/zabbix/zabbix_agent2.conf.d/*.conf'}
+    
+- name: start and enable
+  service: 
+    name: zabbix_agent2.service 
+    state: restarted 
+    enabled: yes
